@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "@poc/core";
+import { err, ok, type Result } from "@gekal-study-nodejs/core";
 
 /** JSON 文字列を Result で安全にパースする。 */
 export function parseJson<T = unknown>(input: string): Result<T> {

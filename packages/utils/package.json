@@ -1,7 +1,7 @@
 {
-  "name": "@poc/utils",
+  "name": "@gekal-study-nodejs/utils",
   "version": "0.1.0",
-  "description": "Shared helpers built on top of @poc/core.",
+  "description": "Shared helpers built on top of @gekal-study-nodejs/core.",
   "type": "module",
   "exports": {
     ".": {
@@ -13,6 +13,14 @@
     "dist"
   ],
   "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gekal-study-nodejs/multi-package-poc.git",
+    "directory": "packages/utils"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -21,7 +29,7 @@
     "clean": "rm -rf dist .turbo *.tsbuildinfo"
   },
   "dependencies": {
-    "@poc/core": "workspace:^"
+    "@gekal-study-nodejs/core": "workspace:^"
   },
   "devDependencies": {
     "tsup": "^8.3.5",

@@ -1,5 +1,5 @@
-import { type Entity, ok, type Result } from "@poc/core";
-import { generateId, parseJson } from "@poc/utils";
+import { type Entity, ok, type Result } from "@gekal-study-nodejs/core";
+import { generateId, parseJson } from "@gekal-study-nodejs/utils";
 
 export interface User extends Entity {
   name: string;

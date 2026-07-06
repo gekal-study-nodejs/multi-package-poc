@@ -32,10 +32,10 @@ importers:
 
   packages/client:
     dependencies:
-      '@poc/core':
+      '@gekal-study-nodejs/core':
         specifier: workspace:^
         version: link:../core
-      '@poc/utils':
+      '@gekal-study-nodejs/utils':
         specifier: workspace:^
         version: link:../utils
     devDependencies:
@@ -63,7 +63,7 @@ importers:
 
   packages/utils:
     dependencies:
-      '@poc/core':
+      '@gekal-study-nodejs/core':
         specifier: workspace:^
         version: link:../core
     devDependencies:

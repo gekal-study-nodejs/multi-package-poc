@@ -1,7 +1,7 @@
 {
-  "name": "@poc/client",
+  "name": "@gekal-study-nodejs/client",
   "version": "0.1.0",
-  "description": "High-level client that composes @poc/core and @poc/utils.",
+  "description": "High-level client that composes @gekal-study-nodejs/core and @gekal-study-nodejs/utils.",
   "type": "module",
   "exports": {
     ".": {
@@ -13,6 +13,14 @@
     "dist"
   ],
   "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gekal-study-nodejs/multi-package-poc.git",
+    "directory": "packages/client"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -21,8 +29,8 @@
     "clean": "rm -rf dist .turbo *.tsbuildinfo"
   },
   "dependencies": {
-    "@poc/core": "workspace:^",
-    "@poc/utils": "workspace:^"
+    "@gekal-study-nodejs/core": "workspace:^",
+    "@gekal-study-nodejs/utils": "workspace:^"
   },
   "devDependencies": {
     "tsup": "^8.3.5",

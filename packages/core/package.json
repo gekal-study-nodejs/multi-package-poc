@@ -1,5 +1,5 @@
 {
-  "name": "@poc/core",
+  "name": "@gekal-study-nodejs/core",
   "version": "0.1.0",
   "description": "Base types and primitives for the PoC.",
   "type": "module",
@@ -13,6 +13,14 @@
     "dist"
   ],
   "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gekal-study-nodejs/multi-package-poc.git",
+    "directory": "packages/core"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
