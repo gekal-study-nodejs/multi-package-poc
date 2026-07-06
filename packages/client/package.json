@@ -1,6 +1,6 @@
 {
   "name": "@gekal-study-nodejs/client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "High-level client that composes @gekal-study-nodejs/core and @gekal-study-nodejs/utils.",
   "type": "module",
   "exports": {
