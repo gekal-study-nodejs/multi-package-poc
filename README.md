@@ -60,6 +60,8 @@ GitHub Packages はスコープ＝リポジトリ所有者名が必須のため�
 2. main マージで Changesets が "Version Packages" PR を自動生成
 3. その PR をマージ → 変更のあったパッケージのみ GitHub Packages へ publish
 
+> 詳細な手順は [docs/RELEASING.md](docs/RELEASING.md) を参照。
+
 ## 利用側（consumer）のセットアップ
 
 これらのパッケージを別プロジェクトから利用する場合、プロジェクトの `.npmrc` に:
