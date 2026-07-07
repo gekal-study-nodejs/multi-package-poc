@@ -17,4 +17,19 @@ describe("UserClient", () => {
     const r = new UserClient().fromJson('{"name":"Bob"}');
     expect(r.ok && r.value.name).toBe("Bob");
   });
+
+  it("lists users in creation order", () => {
+    const client = new UserClient();
+    client.create("Alice");
+    client.create("Bob");
+    expect(client.list().map((u) => u.name)).toEqual(["Alice", "Bob"]);
+  });
+
+  it("deletes a user and reports the outcome", () => {
+    const client = new UserClient();
+    const user = client.create("Alice");
+    expect(client.delete(user.id)).toBe(true);
+    expect(client.delete(user.id)).toBe(false);
+    expect(client.list()).toHaveLength(0);
+  });
 });
