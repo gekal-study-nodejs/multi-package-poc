@@ -28,4 +28,14 @@ export class UserClient {
     if (!parsed.ok) return parsed;
     return ok(this.create(parsed.value.name));
   }
+
+  /** 登録済みの全 User を作成順で返す。 */
+  list(): User[] {
+    return [...this.store.values()];
+  }
+
+  /** User を削除し、削除できたかどうかを返す。 */
+  delete(id: string): boolean {
+    return this.store.delete(id);
+  }
 }
