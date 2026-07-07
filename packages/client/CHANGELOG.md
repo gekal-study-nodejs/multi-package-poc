@@ -1,5 +1,11 @@
 # @gekal-study-nodejs/client
 
+## 0.3.0
+
+### Minor Changes
+
+- 4dc1107: Add `UserClient.list()` to enumerate stored users and `UserClient.delete()` to remove a user.
+
 ## 0.2.0
 
 ### Minor Changes
