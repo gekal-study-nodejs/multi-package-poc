@@ -33,10 +33,10 @@ pnpm lint           # Biome で lint + format チェック（変更なし）
 pnpm format         # Biome で自動修正（--write）
 pnpm changeset      # 変更セットを追加（リリース準備）
 pnpm release        # build → changeset publish（stable / latest）
-pnpm pre:enter      # rc（pre）モードに入る（= changeset pre enter rc）
-pnpm pre:exit       # rc（pre）モードを抜ける（= changeset pre exit）
-pnpm version:snapshot   # 0.0.0-snapshot-<sha> にバージョン（publish しない）
+pnpm version:snapshot   # X.Y.Z-snapshot-<sha> にバージョン（publish しない）
 pnpm release:snapshot   # build → snapshot タグで publish
+pnpm version:rc         # X.Y.Z-rc-<sha> にバージョン（publish しない）
+pnpm release:rc         # build → rc タグで publish
 ```
 
 ## 公開先: GitHub Packages
@@ -53,21 +53,30 @@ GitHub Packages はスコープ＝リポジトリ所有者名が必須のため�
 
 ## CI / CD（GitHub Actions）
 
-- `.github/workflows/ci.yml` … PR・push で `lint → typecheck → test → build` を実行
-- `.github/workflows/release.yml` … main への push で Changesets が
-  「Version Packages」PR を自動生成 / 未消化 changeset が無ければ GitHub Packages へ publish
-  - 認証は `secrets.GITHUB_TOKEN`（`packages: write` 権限）で完結し、**追加 secret 不要**
-- `.github/workflows/snapshot.yml` … PR に `publish-snapshot` ラベル（または手動実行）で
-  `0.0.0-snapshot-<sha>` を `snapshot` タグへ公開（使い捨て検証版）
-- `.github/workflows/prerelease.yml` … rc（Changesets pre）モードの enter/exit を手動実行で切替
+**ブランチ = 公開チャネル**の 3 段昇格モデル。`develop → main → release` へマージで
+昇格しながら、同じ変更を **snapshot → rc → stable** の順で公開する。
 
-プレリリース（snapshot / rc）のバージョン対応と運用は [docs/PRERELEASE.md](docs/PRERELEASE.md) を参照。
+| ブランチ | チャネル | version | dist-tag | ワークフロー |
+|---|---|---|---|---|
+| `develop` | snapshot | `X.Y.Z-snapshot-<sha>` | `snapshot` | `snapshot.yml` |
+| `main` | rc | `X.Y.Z-rc-<sha>` | `rc` | `rc.yml` |
+| `release` | stable | `X.Y.Z` | `latest` | `release.yml` |
+
+- `.github/workflows/ci.yml` … `develop/main/release` の PR・push で `lint → typecheck → test → build`
+- `.github/workflows/snapshot.yml` … `develop` への push で snapshot を公開（使い捨て）
+- `.github/workflows/rc.yml` … `main` への push で rc を公開（使い捨て）
+- `.github/workflows/release.yml` … `release` への push で「Version Packages」PR を生成し、
+  マージで stable を公開（ここで初めて changeset を消費し `X.Y.Z` を確定）
+- 認証はいずれも `secrets.GITHUB_TOKEN`（`packages: write`）で完結し、**追加 secret 不要**
+
+昇格モデルとバージョン対応の詳細は [docs/PRERELEASE.md](docs/PRERELEASE.md) を参照。
 
 ## リリースフロー
 
-1. PR で `pnpm changeset` を実行し semver レベルを記録
-2. main マージで Changesets が "Version Packages" PR を自動生成
-3. その PR をマージ → 変更のあったパッケージのみ GitHub Packages へ publish
+1. feature ブランチで `pnpm changeset` を実行し semver レベルを記録 → `develop` にマージ（snapshot 公開）
+2. `develop → main` へ昇格マージ（rc 公開）
+3. `main → release` へ昇格マージ → 「Version Packages」PR をマージで stable 公開
+4. 確定した版 bump / CHANGELOG を `release → develop` へ back-merge
 
 > 詳細な手順は [docs/RELEASING.md](docs/RELEASING.md) を参照。
 
@@ -82,3 +91,7 @@ GitHub Packages はスコープ＝リポジトリ所有者名が必須のため�
 
 `read:packages` スコープを持つ Personal Access Token を `NODE_AUTH_TOKEN` に設定して
 `pnpm add @gekal-study-nodejs/client` などでインストールする。
+
+- stable: `pnpm add @gekal-study-nodejs/client`（`latest`）
+- rc: `pnpm add @gekal-study-nodejs/client@rc`
+- snapshot: `pnpm add @gekal-study-nodejs/client@<X.Y.Z-snapshot-\<sha\>>`（再現性のため exact 指定推奨）
