@@ -1,6 +1,6 @@
 {
   "name": "@gekal-study-nodejs/utils",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Shared helpers built on top of @gekal-study-nodejs/core.",
   "type": "module",
   "exports": {
