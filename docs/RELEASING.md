@@ -8,6 +8,9 @@
 - バージョニング方式: **独立バージョン**（パッケージごとに semver）
 - パッケージ間参照: `workspace:^`（公開時に実バージョンへ自動変換）
 
+> このドキュメントは **stable（`latest`）リリース**の手順。プレリリース
+> （snapshot / rc）のバージョン対応と運用は [docs/PRERELEASE.md](PRERELEASE.md) を参照。
+
 ---
 
 ## TL;DR

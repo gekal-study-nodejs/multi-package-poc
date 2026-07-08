@@ -17,7 +17,11 @@
     "clean": "turbo run clean && rm -rf node_modules",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build && changeset publish"
+    "release": "turbo run build && changeset publish",
+    "pre:enter": "changeset pre enter rc",
+    "pre:exit": "changeset pre exit",
+    "version:snapshot": "changeset version --snapshot snapshot",
+    "release:snapshot": "turbo run build && changeset publish --tag snapshot --no-git-tag"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.2",

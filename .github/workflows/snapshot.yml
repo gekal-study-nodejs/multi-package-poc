@@ -1,0 +1,89 @@
+name: Snapshot
+
+# 検証用の「使い捨て」バージョンを GitHub Packages の snapshot タグへ公開する。
+# バージョンは 0.0.0-snapshot-<commit>（.changeset/config.json の snapshot 設定）。
+# git tag もバージョン履歴も残さない。stable / rc とは独立した系統。
+on:
+  # PR に `publish-snapshot` ラベルを付けたとき（付与時＋以降の push で再発行）
+  pull_request:
+    types: [labeled, synchronize]
+  # 任意のブランチ/コミットから手動発行
+  workflow_dispatch:
+
+# 同じ PR / ref の古い発行はキャンセル
+concurrency:
+  group: snapshot-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write # GitHub Packages への publish に必要
+  pull-requests: write # 発行結果を PR にコメントするため
+
+jobs:
+  snapshot:
+    # 手動実行、または `publish-snapshot` ラベルが付いている PR のみ実行
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'publish-snapshot')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          # GitHub Packages を既定レジストリにし、認証用 .npmrc を生成する
+          registry-url: https://npm.pkg.github.com
+          scope: "@gekal-study-nodejs"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # PR に含まれる changeset を対象に 0.0.0-snapshot-<commit> へバージョンする。
+      # changeset が 1 つも無い場合は bump 対象ゼロ = 何も publish されない。
+      - name: Version (snapshot)
+        run: pnpm version:snapshot
+
+      # build + changeset publish --tag snapshot --no-git-tag
+      - name: Build & publish snapshot
+        run: pnpm release:snapshot
+        env:
+          # GitHub Packages への publish 認証。追加の secret は不要。
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # PR から発行したときは install 手順をコメントで残す
+      - name: Comment install instructions
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // changeset の {commit} プレースホルダはフル SHA を埋め込む
+            const sha = require('child_process')
+              .execSync('git rev-parse HEAD').toString().trim();
+            const version = `0.0.0-snapshot-${sha}`;
+            const pkgs = [
+              '@gekal-study-nodejs/core',
+              '@gekal-study-nodejs/utils',
+              '@gekal-study-nodejs/client',
+            ];
+            const body = [
+              `### 📦 Snapshot published`,
+              '',
+              `changeset を含むパッケージを \`${version}\`（dist-tag: \`snapshot\`）で公開しました。`,
+              '',
+              '```bash',
+              ...pkgs.map((p) => `pnpm add ${p}@${version}`),
+              '```',
+              '',
+              '> 使い捨てバージョンです。バージョン履歴・git tag には残りません。',
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body,
+            });

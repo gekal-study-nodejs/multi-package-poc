@@ -32,7 +32,11 @@ pnpm typecheck      # 型チェック
 pnpm lint           # Biome で lint + format チェック（変更なし）
 pnpm format         # Biome で自動修正（--write）
 pnpm changeset      # 変更セットを追加（リリース準備）
-pnpm release        # build → changeset publish
+pnpm release        # build → changeset publish（stable / latest）
+pnpm pre:enter      # rc（pre）モードに入る（= changeset pre enter rc）
+pnpm pre:exit       # rc（pre）モードを抜ける（= changeset pre exit）
+pnpm version:snapshot   # 0.0.0-snapshot-<sha> にバージョン（publish しない）
+pnpm release:snapshot   # build → snapshot タグで publish
 ```
 
 ## 公開先: GitHub Packages
@@ -53,6 +57,11 @@ GitHub Packages はスコープ＝リポジトリ所有者名が必須のため�
 - `.github/workflows/release.yml` … main への push で Changesets が
   「Version Packages」PR を自動生成 / 未消化 changeset が無ければ GitHub Packages へ publish
   - 認証は `secrets.GITHUB_TOKEN`（`packages: write` 権限）で完結し、**追加 secret 不要**
+- `.github/workflows/snapshot.yml` … PR に `publish-snapshot` ラベル（または手動実行）で
+  `0.0.0-snapshot-<sha>` を `snapshot` タグへ公開（使い捨て検証版）
+- `.github/workflows/prerelease.yml` … rc（Changesets pre）モードの enter/exit を手動実行で切替
+
+プレリリース（snapshot / rc）のバージョン対応と運用は [docs/PRERELEASE.md](docs/PRERELEASE.md) を参照。
 
 ## リリースフロー
 
