@@ -18,10 +18,10 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo run build && changeset publish",
-    "pre:enter": "changeset pre enter rc",
-    "pre:exit": "changeset pre exit",
     "version:snapshot": "changeset version --snapshot snapshot",
-    "release:snapshot": "turbo run build && changeset publish --tag snapshot --no-git-tag"
+    "release:snapshot": "turbo run build && changeset publish --tag snapshot --no-git-tag",
+    "version:rc": "changeset version --snapshot rc",
+    "release:rc": "turbo run build && changeset publish --tag rc --no-git-tag"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.2",
