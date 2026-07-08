@@ -63,6 +63,7 @@ GitHub Packages はスコープ＝リポジトリ所有者名が必須のため�
 | `release` | stable | `X.Y.Z` | `latest` | `release.yml` |
 
 - `.github/workflows/ci.yml` … `develop/main/release` の PR・push で `lint → typecheck → test → build`
+- `.github/workflows/release-preview.yml` … PR に「リリース予定バージョン」を sticky コメント（`changeset status` で非破壊算出）
 - `.github/workflows/snapshot.yml` … `develop` への push で snapshot を公開（使い捨て）
 - `.github/workflows/rc.yml` … `main` への push で rc を公開（使い捨て）
 - `.github/workflows/release.yml` … `release` への push で「Version Packages」PR を生成し、
