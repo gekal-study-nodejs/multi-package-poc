@@ -1,0 +1,74 @@
+name: RC (main)
+
+# develop から昇格した main への push で、リリース候補(rc)版を公開する。
+# バージョンは <計算済み次期版>-rc-<commit>（例: 0.2.1-rc-<sha>）。dist-tag は `rc`。
+# snapshot と同じ計算済み X.Y.Z を共有し、タグだけが snapshot → rc → latest と進む。
+# 使い捨て（git tag / 履歴に残さない）。実バージョン確定は release ブランチで行う。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: rc-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  rc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com
+          scope: "@gekal-study-nodejs"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Detect changesets
+        id: cs
+        run: |
+          if ls .changeset/*.md >/dev/null 2>&1; then
+            echo "have=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "have=false" >> "$GITHUB_OUTPUT"
+            echo "未消化の changeset がありません。rc は公開しません。" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # <次期版>-rc-<commit> へバージョン（ワークスペース内のみ / commit しない）
+      - name: Version (rc)
+        if: steps.cs.outputs.have == 'true'
+        run: pnpm version:rc
+
+      # build + changeset publish --tag rc --no-git-tag
+      - name: Build & publish rc
+        if: steps.cs.outputs.have == 'true'
+        run: pnpm release:rc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        if: steps.cs.outputs.have == 'true'
+        run: |
+          {
+            echo "### 🚀 RC 公開"
+            echo ""
+            echo "dist-tag \`rc\` で公開しました。install 例:"
+            echo ""
+            echo '```bash'
+            for p in core utils client; do
+              v=$(node -p "require('./packages/$p/package.json').version")
+              echo "pnpm add @gekal-study-nodejs/$p@$v"
+            done
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

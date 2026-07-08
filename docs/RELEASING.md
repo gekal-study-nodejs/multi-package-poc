@@ -8,19 +8,21 @@
 - バージョニング方式: **独立バージョン**（パッケージごとに semver）
 - パッケージ間参照: `workspace:^`（公開時に実バージョンへ自動変換）
 
-> このドキュメントは **stable（`latest`）リリース**の手順。プレリリース
-> （snapshot / rc）のバージョン対応と運用は [docs/PRERELEASE.md](PRERELEASE.md) を参照。
+> このドキュメントは **stable（`latest`）リリース**（`release` ブランチ）の手順。
+> `develop(snapshot) → main(rc) → release(stable)` の**ブランチ昇格モデル全体**と
+> バージョン対応は [docs/PRERELEASE.md](PRERELEASE.md) を参照。
 
 ---
 
 ## TL;DR
 
-開発者がやるのは **1〜2 のみ**。3 以降は GitHub Actions が自動化する。
+stable は昇格チェーンの最終段（`release` ブランチ）で確定・公開する。
 
-1. コードを変更する
-2. `pnpm changeset` で変更セットを追加し、PR を作って main にマージ
-3. Release ワークフローが「Version Packages」PR を自動生成
-4. その PR をマージ → GitHub Packages へ自動 publish
+1. `pnpm changeset` で変更セットを追加し、`develop` にマージ（snapshot 公開）
+2. `develop → main` に昇格（rc 公開）
+3. `main → release` に昇格 → Release ワークフローが「Version Packages」PR を自動生成
+4. その PR をマージ → GitHub Packages へ stable を自動 publish
+5. 版 bump / CHANGELOG を `release → develop` に back-merge
 
 ---
 
@@ -65,7 +67,8 @@ pnpm changeset
 ```bash
 git add -A
 git commit -m "feat(utils): add isBlank helper"
-# feature ブランチから main へ PR を作成しマージ
+# feature ブランチから develop へ PR を作成しマージ（→ snapshot 公開）
+# その後 develop → main（rc 公開）→ main → release（stable）へ昇格していく
 ```
 
 CI（`ci.yml`）が `lint → typecheck → test → build` を実行する。
@@ -76,8 +79,9 @@ CI（`ci.yml`）が `lint → typecheck → test → build` を実行する。
 
 ### 3. 「Version Packages」PR が自動生成される
 
-main に未消化の changeset がある状態で push されると、Release ワークフロー
-(`release.yml`) の `changesets/action` が PR を自動作成/更新する。この PR には:
+`release` ブランチに未消化の changeset がある状態で push されると（= `main → release`
+昇格マージ）、Release ワークフロー (`release.yml`) の `changesets/action` が PR を
+自動作成/更新する。この PR には:
 
 - 各 `package.json` の `version` 更新（例: `utils` 0.1.0 → 0.1.1）
 - `CHANGELOG.md` の自動生成（changeset の要約から）
@@ -93,6 +97,13 @@ Version PR をマージすると Release ワークフローが再実行され、
 - 認証は `secrets.GITHUB_TOKEN`（`packages: write`）で完結。**追加 secret 不要。**
 - `changeset publish` は冪等 — レジストリに未存在のバージョンのみ publish する。
 - 公開物は `https://github.com/orgs/gekal-study-nodejs/packages` に表示される。
+
+### 5. back-merge（重要）
+
+stable 公開で `release` 上の `package.json` の版が bump され、changeset が削除される。
+この状態を `release → develop`（必要に応じて `main`）へ back-merge して、次サイクルの
+snapshot / rc が計算する「次期版」の基準を揃える。これを怠ると、次の snapshot/rc が
+古い版を基準に計算してしまう。
 
 ---
 
@@ -119,8 +130,12 @@ publish はせず、バージョン計算と CHANGELOG 生成だけ試せる。
 ```bash
 pnpm changeset status --verbose   # 上がる対象をプレビュー
 pnpm changeset version            # package.json と CHANGELOG を更新（publish しない）
-git restore . && git clean -fd    # 試したら元に戻す
+git restore packages && git clean -fd .changeset  # 元に戻す（設定ファイルは残す）
 ```
+
+> `git restore .`（全体）は使わないこと — `.changeset/config.json` や `package.json`
+> の scripts など、意図した編集ごと巻き戻してしまう。書き換わるのは `packages` 配下なので
+> そこだけ戻す。
 
 > `changeset version` はローカルのファイルを書き換えるだけ。CI に任せる運用では
 > 手元で実行する必要はない。
